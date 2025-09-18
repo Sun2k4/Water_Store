@@ -1,0 +1,29 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_size = 4
+indent_style = space
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.{yml,yaml}]
+indent_size = 2
+
+[docker-compose.yml]
+indent_size = 4
+
+<!-- ...existing code... -->
+<form action="{{ route('payment.cod') }}" method="POST">
+    @csrf
+    <input type="text" name="name" placeholder="Họ tên" value="{{ old('name', Auth::user()->name) }}" required>
+    <input type="text" name="address" placeholder="Địa chỉ" value="{{ old('address') }}" required>
+    <input type="text" name="phone" placeholder="Số điện thoại" value="{{ old('phone') }}" required>
+    <!-- ...các trường khác... -->
+    <button type="submit">Đặt hàng COD</button>
+</form>
+<!-- ...existing code... -->
