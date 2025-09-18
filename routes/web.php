@@ -11,6 +11,7 @@ use App\Http\Controllers\WishlistController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\ProductReviewController;
 
 /*
 |--------------------------------------------------------------------------
@@ -104,6 +105,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/wishlist/{id}', [WishlistController::class, 'remove'])->name('wishlist.remove');
     Route::post('/wishlist/toggle', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
     Route::get('/wishlist/count', [WishlistController::class, 'getWishlistCount'])->name('wishlist.count');
+
+    // Product Reviews (Đánh giá sản phẩm)
+    Route::post('/reviews', [ProductReviewController::class, 'store'])->name('reviews.store');
+    Route::put('/reviews/{review}', [ProductReviewController::class, 'update'])->name('reviews.update');
+    Route::delete('/reviews/{review}', [ProductReviewController::class, 'destroy'])->name('reviews.destroy');
 
     // Payment
     Route::get('/payment', [App\Http\Controllers\PaymentController::class, 'index'])->name('payment.index');

@@ -9,10 +9,29 @@
             </div>
             <div class="pull-right">
                 <a class="btn btn-primary" href="{{ route('products.index') }}">Quay lại</a>
-                <a class="btn btn-warning" href="{{ route('products.edit', $product->id) }}">Chỉnh sửa</a>
+                @auth
+                    @if(auth()->user()->role === 'admin')
+                        <a class="btn btn-warning" href="{{ route('products.edit', $product->id) }}">Chỉnh sửa</a>
+                    @endif
+                @endauth
             </div>
         </div>
     </div>
+
+    <!-- Thông báo -->
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
 
     <div class="row">
         <div class="col-md-6">
@@ -101,7 +120,7 @@
                     </div>
                     
                     @auth
-                        @if(!auth()->user()->is_admin)
+                        @if(auth()->user()->role !== 'admin')
                             <div class="row mt-3">
                                 <div class="col-12">
                                     @if($product->is_active && $product->quantity > 0)
@@ -171,6 +190,156 @@
         </div>
     </div>
 
+    <!-- Phần đánh giá sản phẩm -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-star text-warning me-2"></i>Đánh giá sản phẩm</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Thống kê đánh giá -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <h2 class="text-warning mb-1">
+                                    {{ number_format($averageRating, 1) }}
+                                    <small class="text-muted">/5</small>
+                                </h2>
+                                <div class="mb-2">
+                                    @for($i = 1; $i <= 5; $i++)
+                                        @if($i <= floor($averageRating))
+                                            <i class="fas fa-star text-warning"></i>
+                                        @elseif($i - 0.5 <= $averageRating)
+                                            <i class="fas fa-star-half-alt text-warning"></i>
+                                        @else
+                                            <i class="far fa-star text-warning"></i>
+                                        @endif
+                                    @endfor
+                                </div>
+                                <p class="text-muted mb-0">{{ $totalReviews }} đánh giá</p>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <h6>Phân phối đánh giá:</h6>
+                            @for($i = 5; $i >= 1; $i--)
+                                <div class="d-flex align-items-center mb-2">
+                                    <span class="me-2">{{ $i }} sao</span>
+                                    <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                        <div class="progress-bar bg-warning" 
+                                             style="width: {{ $totalReviews > 0 ? round(($ratingDistribution[$i] / $totalReviews) * 100, 2) : 0 }}%;">
+                                        </div>
+                                    </div>
+                                    <span class="text-muted">{{ $ratingDistribution[$i] }}</span>
+                                </div>
+                            @endfor
+                        </div>
+                    </div>
+
+                    <!-- Form đánh giá (chỉ hiển thị nếu user có thể đánh giá) -->
+                    @if($canReview)
+                        <div class="border-top pt-4 mb-4">
+                            <h5>
+                                @if($userReview)
+                                    Chỉnh sửa đánh giá của bạn
+                                @else
+                                    Viết đánh giá
+                                @endif
+                            </h5>
+                            <form action="{{ $userReview ? route('reviews.update', $userReview->id) : route('reviews.store') }}" method="POST">
+                                @csrf
+                                @if($userReview)
+                                    @method('PUT')
+                                @endif
+                                <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Đánh giá của bạn:</label>
+                                    <div class="rating-input">
+                                        @for($i = 1; $i <= 5; $i++)
+                                            <input type="radio" name="rating" value="{{ $i }}" id="star{{ $i }}" 
+                                                   {{ ($userReview && $userReview->rating == $i) ? 'checked' : '' }} required>
+                                            <label for="star{{ $i }}" class="star-label">
+                                                <i class="fas fa-star"></i>
+                                            </label>
+                                        @endfor
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="comment" class="form-label">Nhận xét (tùy chọn):</label>
+                                    <textarea name="comment" id="comment" class="form-control" rows="4" 
+                                              placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm này...">{{ $userReview ? $userReview->comment : '' }}</textarea>
+                                </div>
+                                
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-paper-plane me-2"></i>
+                                        {{ $userReview ? 'Cập nhật đánh giá' : 'Gửi đánh giá' }}
+                                    </button>
+                                    @if($userReview)
+                                        <form action="{{ route('reviews.destroy', $userReview->id) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-outline-danger" 
+                                                    onclick="return confirm('Bạn có chắc muốn xóa đánh giá này?')">
+                                                <i class="fas fa-trash me-2"></i>Xóa đánh giá
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
+                            </form>
+                        </div>
+                    @elseif(auth()->check())
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Bạn cần mua sản phẩm này để có thể đánh giá.
+                        </div>
+                    @else
+                        <div class="alert alert-warning">
+                            <i class="fas fa-sign-in-alt me-2"></i>
+                            Vui lòng <a href="{{ route('login') }}">đăng nhập</a> để đánh giá sản phẩm.
+                        </div>
+                    @endif
+
+                    <!-- Danh sách đánh giá -->
+                    @if($product->reviews->count() > 0)
+                        <div class="border-top pt-4">
+                            <h5>Tất cả đánh giá ({{ $totalReviews }})</h5>
+                            @foreach($product->reviews->sortByDesc('created_at') as $review)
+                                <div class="review-item border-bottom pb-3 mb-3">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <strong>{{ $review->user->name }}</strong>
+                                            <div class="rating-display">
+                                                @for($i = 1; $i <= 5; $i++)
+                                                    @if($i <= $review->rating)
+                                                        <i class="fas fa-star text-warning"></i>
+                                                    @else
+                                                        <i class="far fa-star text-warning"></i>
+                                                    @endif
+                                                @endfor
+                                            </div>
+                                        </div>
+                                        <small class="text-muted">{{ $review->created_at->format('d/m/Y H:i') }}</small>
+                                    </div>
+                                    @if($review->comment)
+                                        <p class="mb-0">{{ $review->comment }}</p>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="text-center py-4">
+                            <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Chưa có đánh giá nào cho sản phẩm này.</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row mt-3">
         <div class="col-12">
             <div class="card">
@@ -191,4 +360,39 @@
         </div>
     </div>
 </div>
+
+<style>
+.rating-input {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+}
+
+.rating-input input[type="radio"] {
+    display: none;
+}
+
+.rating-input .star-label {
+    color: #ddd;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.rating-input input[type="radio"]:checked ~ .star-label,
+.rating-input .star-label:hover,
+.rating-input .star-label:hover ~ .star-label {
+    color: #ffc107;
+}
+
+.rating-display {
+    font-size: 0.9rem;
+}
+
+.review-item:last-child {
+    border-bottom: none !important;
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+</style>
 @endsection

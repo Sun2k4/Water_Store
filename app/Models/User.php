@@ -43,4 +43,33 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(Wishlist::class);
     }
+
+    public function reviews()
+    {
+        return $this->hasMany(ProductReview::class);
+    }
+
+    /**
+     * Kiểm tra xem user đã mua sản phẩm này chưa
+     */
+    public function hasPurchased($productId)
+    {
+        return $this->orders()
+            ->where('status', 'đã giao hàng')
+            ->whereHas('items', function ($query) use ($productId) {
+                $query->where('product_id', $productId);
+            })
+            ->exists();
+    }
+
+    /**
+     * Kiểm tra xem user đã review sản phẩm này trong đơn hàng này chưa
+     */
+    public function hasReviewed($productId, $orderId)
+    {
+        return $this->reviews()
+            ->where('product_id', $productId)
+            ->where('order_id', $orderId)
+            ->exists();
+    }
 }

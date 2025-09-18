@@ -24,7 +24,8 @@ class AdminController extends Controller
     public function products()
     {
         $products = Product::with('category')->orderBy('created_at', 'desc')->paginate(10);
-        return view('admin.products.index', compact('products'));
+        $categories = Category::all();
+        return view('admin.products.index', compact('products', 'categories'));
     }
 
     public function categories()

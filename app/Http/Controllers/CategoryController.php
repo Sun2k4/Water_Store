@@ -33,6 +33,9 @@ class CategoryController extends Controller
     public function show(Category $category)
     {
         $category->loadCount('products');
+        $category->load(['products' => function($query) {
+            $query->where('is_active', true)->take(8);
+        }]);
         return view('categories.show', compact('category'));
     }
 

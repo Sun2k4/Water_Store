@@ -26,6 +26,13 @@
                 <i class="fas fa-tint fa-10x opacity-75"></i>
             </div>
         </div>
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="result-info text-muted small">
+                    Hiển thị {{ $products->count() }} sản phẩm
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -228,80 +235,111 @@
 
 @section('scripts')
 <script>
-    // Search functionality
-    document.getElementById('searchInput').addEventListener('keyup', function() {
-        filterProducts();
+document.addEventListener('DOMContentLoaded', function() {
+    // Filter functionality
+    const searchInput = document.getElementById('searchInput');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const productsContainer = document.getElementById('productsContainer');
+    
+    console.log('DOM loaded - Elements found:', {
+        searchInput: !!searchInput,
+        categoryFilter: !!categoryFilter,
+        productsContainer: !!productsContainer
     });
     
-    document.getElementById('categoryFilter').addEventListener('change', function() {
-        filterProducts();
-    });
-    
-    function filterProducts() {
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-        const categoryFilter = document.getElementById('categoryFilter').value;
-        const products = document.querySelectorAll('.product-item');
+    // Event listeners for filter
+    if (searchInput && categoryFilter && productsContainer) {
+        searchInput.addEventListener('input', filterProducts);
+        categoryFilter.addEventListener('change', filterProducts);
         
-        products.forEach(function(product) {
-            const productName = product.getAttribute('data-name');
-            const productCategory = product.getAttribute('data-category');
+        function filterProducts() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            const selectedCategory = categoryFilter.value;
+            const productItems = productsContainer.querySelectorAll('.product-item');
+            let visibleCount = 0;
             
-            const matchesSearch = productName.includes(searchTerm);
-            const matchesCategory = categoryFilter === '' || productCategory === categoryFilter;
+            console.log('Filter - Search:', searchTerm, 'Category:', selectedCategory);
+            console.log('Found product items:', productItems.length);
             
-            if (matchesSearch && matchesCategory) {
-                product.style.display = 'block';
-            } else {
-                product.style.display = 'none';
+            productItems.forEach(function(item) {
+                const productName = (item.dataset.name || '').toLowerCase();
+                const productCategory = item.dataset.category || '';
+                
+                // Kiểm tra điều kiện search
+                const matchSearch = !searchTerm || productName.includes(searchTerm);
+                
+                // Kiểm tra điều kiện category
+                const matchCategory = !selectedCategory || productCategory === selectedCategory;
+                
+                console.log('Product:', productName, 'Category:', productCategory, 'Match:', matchSearch && matchCategory);
+                
+                // Hiển thị hoặc ẩn sản phẩm
+                if (matchSearch && matchCategory) {
+                    item.style.display = '';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            
+            console.log('Visible products:', visibleCount);
+            
+            // Cập nhật số lượng kết quả
+            updateResultCount(visibleCount);
+        }
+        
+        function updateResultCount(count) {
+            const resultInfo = document.querySelector('.result-info');
+            if (resultInfo) {
+                resultInfo.textContent = `Hiển thị ${count} sản phẩm`;
             }
-        });
+        }
     }
 
     // Wishlist functionality
-    document.addEventListener('DOMContentLoaded', function() {
-        const wishlistButtons = document.querySelectorAll('.wishlist-btn');
-        
-        wishlistButtons.forEach(function(button) {
-            button.addEventListener('click', function() {
-                const productId = this.getAttribute('data-product-id');
-                const icon = this.querySelector('i');
+    const wishlistButtons = document.querySelectorAll('.wishlist-btn');
+    
+    wishlistButtons.forEach(function(button) {
+        button.addEventListener('click', function() {
+            const productId = this.getAttribute('data-product-id');
+            const icon = this.querySelector('i');
+            
+            fetch('{{ route("wishlist.toggle") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({
+                    product_id: productId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'added') {
+                    icon.classList.remove('far');
+                    icon.classList.add('fas');
+                    this.classList.remove('btn-outline-danger');
+                    this.classList.add('btn-danger');
+                    showAlert('success', data.message);
+                } else {
+                    icon.classList.remove('fas');
+                    icon.classList.add('far');
+                    this.classList.remove('btn-danger');
+                    this.classList.add('btn-outline-danger');
+                    showAlert('info', data.message);
+                }
                 
-                fetch('{{ route("wishlist.toggle") }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    },
-                    body: JSON.stringify({
-                        product_id: productId
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'added') {
-                        icon.classList.remove('far');
-                        icon.classList.add('fas');
-                        this.classList.remove('btn-outline-danger');
-                        this.classList.add('btn-danger');
-                        showAlert('success', data.message);
-                    } else {
-                        icon.classList.remove('fas');
-                        icon.classList.add('far');
-                        this.classList.remove('btn-danger');
-                        this.classList.add('btn-outline-danger');
-                        showAlert('info', data.message);
-                    }
-                    
-                    // Cập nhật số lượng wishlist
-                    updateWishlistCount();
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showAlert('error', 'Có lỗi xảy ra!');
-                });
+                // Cập nhật số lượng wishlist
+                updateWishlistCount();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('error', 'Có lỗi xảy ra!');
             });
         });
     });
+});
 
     function updateWishlistCount() {
         fetch('{{ route("wishlist.count") }}')

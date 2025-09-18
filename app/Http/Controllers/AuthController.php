@@ -60,7 +60,7 @@ class AuthController extends Controller
             $user = Auth::user();
             
             // Kiểm tra email verification
-            if (!$user->hasVerifiedEmail()) {
+            if (is_null($user->email_verified_at)) {
                 return redirect()->route('verification.notice')
                     ->with('warning', 'Vui lòng xác nhận email trước khi tiếp tục.');
             }
@@ -85,11 +85,9 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         Auth::logout();
-
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-
-        return redirect('/login')
-            ->with('success', 'Đăng xuất thành công!');
+        
+        return redirect('/')->with('success', 'Đăng xuất thành công!');
     }
 }

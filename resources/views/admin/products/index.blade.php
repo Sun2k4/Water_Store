@@ -42,10 +42,8 @@
                     <label class="form-label">Danh mục</label>
                     <select class="form-select" id="categoryFilter">
                         <option value="">Tất cả danh mục</option>
-                        @foreach($products->pluck('category')->unique() as $category)
-                            @if($category)
-                                <option value="{{ $category->name }}">{{ $category->name }}</option>
-                            @endif
+                        @foreach($categories ?? [] as $category)
+                            <option value="{{ $category->name }}">{{ $category->name }}</option>
                         @endforeach
                     </select>
                 </div>

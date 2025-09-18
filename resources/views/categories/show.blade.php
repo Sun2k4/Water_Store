@@ -87,17 +87,51 @@
                 <div class="card">
                     <div class="card-header">
                         <h5 class="text-headline mb-0">
-                            <i class="fas fa-box text-highlight me-2"></i>Sản phẩm trong danh mục
+                            <i class="fas fa-box text-highlight me-2"></i>Sản phẩm trong danh mục ({{ $category->products_count }})
                         </h5>
                     </div>
                     <div class="card-body">
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle me-2"></i>
-                            Danh mục này có {{ $category->products_count }} sản phẩm. 
-                            <a href="{{ route('products.index') }}?category={{ $category->id }}" class="text-decoration-none">
-                                Xem tất cả sản phẩm
-                            </a>
+                        <div class="row">
+                            @foreach($category->products as $product)
+                                <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                                    <div class="card product-card h-100">
+                                        <div class="position-relative">
+                                            @if($product->image)
+                                                <img src="{{ asset('storage/' . $product->image) }}" class="card-img-top product-image" alt="{{ $product->name }}" style="height: 200px; object-fit: cover;">
+                                            @else
+                                                <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 200px;">
+                                                    <i class="fas fa-tint fa-3x text-muted"></i>
+                                                </div>
+                                            @endif
+                                        </div>
+                                        <div class="card-body">
+                                            <h6 class="card-title">{{ $product->name }}</h6>
+                                            <p class="text-success fw-bold">{{ number_format($product->price, 0, ',', '.') }}đ</p>
+                                            <div class="d-flex gap-2">
+                                                <a href="{{ route('products.show', $product->id) }}" class="btn btn-outline btn-sm flex-grow-1">
+                                                    <i class="fas fa-eye me-1"></i>Xem
+                                                </a>
+                                                @auth
+                                                    @if(Auth::user()->role === 'admin')
+                                                        <a href="{{ route('products.edit', $product->id) }}" class="btn btn-primary btn-sm">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
+                                                    @endif
+                                                @endauth
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
                         </div>
+                        
+                        @if($category->products_count > 8)
+                            <div class="text-center mt-3">
+                                <a href="{{ route('products.index') }}?category={{ $category->id }}" class="btn btn-primary">
+                                    <i class="fas fa-eye me-2"></i>Xem tất cả {{ $category->products_count }} sản phẩm
+                                </a>
+                            </div>
+                        @endif
                     </div>
                 </div>
             @else

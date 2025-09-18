@@ -235,6 +235,78 @@
             background: rgba(255, 255, 255, 0.1);
             transform: translateY(-3px);
         }
+        
+        /* Additional styles for improved welcome page */
+        .text-gradient {
+            background: linear-gradient(45deg, #ffffff, #e3f2fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .feature-icon-small {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        
+        .feature-highlight {
+            transition: transform 0.3s ease;
+        }
+        
+        .feature-highlight:hover {
+            transform: translateY(-5px);
+        }
+        
+        .water-animation {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .water-drops {
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+        }
+        
+        .water-drops i {
+            position: absolute;
+            animation: float 4s ease-in-out infinite;
+        }
+        
+        .water-drops i:nth-child(2) {
+            animation-delay: 1s;
+        }
+        
+        .water-drops i:nth-child(3) {
+            animation-delay: 2s;
+        }
+        
+        .min-vh-100 {
+            min-height: 100vh;
+        }
+        
+        .product-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+        }
+        
+        .product-card .card-img-top {
+            transition: transform 0.3s ease;
+        }
+        
+        .product-card:hover .card-img-top {
+            transform: scale(1.05);
+        }
     </style>
 </head>
 <body>
@@ -310,72 +382,139 @@
     <!-- Hero Section -->
     <section class="hero-section text-white">
         <div class="container">
-            <div class="row align-items-center">
+            <div class="row align-items-center" style="min-height: 80vh;">
                 <div class="col-lg-6">
-                    <h1 class="display-3 fw-bold mb-4 animate-fade-in-up">
-                        <i class="fas fa-tint me-3"></i>Nước sạch chất lượng cao
-                    </h1>
-                    <p class="lead mb-4 animate-fade-in-up">
-                        Khám phá bộ sưu tập nước uống đa dạng, từ nước tinh khiết đến nước khoáng thiên nhiên. 
-                        Đảm bảo sức khỏe cho bạn và gia đình.
-                    </p>
-                    <div class="d-flex gap-3 mb-4 animate-fade-in-up">
-                        <span class="badge bg-light text-dark fs-6 px-3 py-2">
-                            <i class="fas fa-shield-alt me-2"></i>An toàn tuyệt đối
-                        </span>
-                        <span class="badge bg-light text-dark fs-6 px-3 py-2">
-                            <i class="fas fa-truck me-2"></i>Giao hàng nhanh
-                        </span>
-                        <span class="badge bg-light text-dark fs-6 px-3 py-2">
-                            <i class="fas fa-star me-2"></i>Chất lượng 5 sao
-                        </span>
-                    </div>
-                    <div class="animate-fade-in-up">
-                        <a href="{{ route('products.index') }}" class="btn btn-primary btn-lg me-3">
-                            <i class="fas fa-shopping-bag me-2"></i>Mua ngay
-                        </a>
-                        @guest
-                            <a href="{{ route('register') }}" class="btn btn-outline btn-lg">
-                                <i class="fas fa-user-plus me-2"></i>Đăng ký
-                            </a>
-                        @endguest
+                    <div class="hero-content">
+                        <h1 class="display-3 fw-bold mb-3 animate-fade-in-up">
+                            <i class="fas fa-tint me-2 text-info"></i>
+                            <span class="text-gradient">Water Store</span>
+                        </h1>
+                        <p class="lead mb-4 animate-fade-in-up delay-1">
+                            Nước sạch chất lượng cao cho sức khỏe gia đình bạn
+                        </p>
+                        
+                        <div class="d-flex flex-wrap gap-3 mb-4 animate-fade-in-up delay-2">
+                            <span class="badge bg-success px-3 py-2">
+                                <i class="fas fa-shield-alt me-1"></i>An toàn 100%
+                            </span>
+                            <span class="badge bg-warning text-dark px-3 py-2">
+                                <i class="fas fa-truck-fast me-1"></i>Giao hàng nhanh
+                            </span>
+                            <span class="badge bg-info px-3 py-2">
+                                <i class="fas fa-star me-1"></i>Chất lượng 5⭐
+                            </span>
+                        </div>
+                        
+                        <div class="animate-fade-in-up delay-3">
+                            @auth
+                                <a href="{{ route('products.index') }}" class="btn btn-primary btn-lg me-3">
+                                    <i class="fas fa-shopping-bag me-2"></i>Mua ngay
+                                </a>
+                            @else
+                                <a href="{{ route('login') }}" class="btn btn-primary btn-lg me-3">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập
+                                </a>
+                                <a href="{{ route('register') }}" class="btn btn-outline-light btn-lg">
+                                    <i class="fas fa-user-plus me-2"></i>Đăng ký
+                                </a>
+                            @endauth
+                        </div>
                     </div>
                 </div>
                 <div class="col-lg-6 text-center">
-                    <div class="animate-fade-in-up">
-                        <i class="fas fa-tint fa-10x opacity-75"></i>
+                    <div class="hero-image animate-fade-in-up delay-2">
+                        <i class="fas fa-tint fa-10x text-info opacity-75 animate-float"></i>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Stats Section -->
-    <section class="stats-section py-5">
+    <!-- Featured Products Section -->
+    <section class="py-4 bg-light">
         <div class="container">
-            <div class="row">
-                <div class="col-md-3">
+            <div class="text-center mb-4">
+                <h2 class="h3 mb-2">
+                    <i class="fas fa-star text-warning me-2"></i>Sản phẩm nổi bật
+                </h2>
+            </div>
+            
+            <div class="row g-3">
+                @php
+                    $featuredProducts = \App\Models\Product::with('category')
+                        ->where('is_active', true)
+                        ->inRandomOrder()
+                        ->take(3)
+                        ->get();
+                @endphp
+                
+                @foreach($featuredProducts as $product)
+                <div class="col-lg-4 col-md-6">
+                    <div class="card h-100 shadow-sm border-0 product-card">
+                        <div class="position-relative overflow-hidden">
+                            @if($product->image)
+                                <img src="{{ asset('storage/' . $product->image) }}" 
+                                     class="card-img-top" 
+                                     alt="{{ $product->name }}"
+                                     style="height: 180px; object-fit: cover;">
+                            @else
+                                <div class="card-img-top bg-gradient-primary d-flex align-items-center justify-content-center text-white" 
+                                     style="height: 180px;">
+                                    <i class="fas fa-tint fa-2x opacity-50"></i>
+                                </div>
+                            @endif
+                        </div>
+                        <div class="card-body">
+                            <h6 class="card-title mb-2">{{ $product->name }}</h6>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="h6 text-primary fw-bold mb-0">
+                                    {{ number_format($product->price, 0, ',', '.') }}đ
+                                </span>
+                                <a href="{{ route('products.show', $product) }}" 
+                                   class="btn btn-primary btn-sm">
+                                    Xem
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+            
+            <div class="text-center mt-4">
+                <a href="{{ route('products.index') }}" class="btn btn-outline-primary">
+                    Xem tất cả
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section py-3 bg-primary text-white">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-6 col-md-3">
                     <div class="stat-item">
                         <span class="stat-number">500+</span>
-                        <div class="stat-label">Sản phẩm đa dạng</div>
+                        <div class="stat-label">Sản phẩm</div>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-6 col-md-3">
                     <div class="stat-item">
                         <span class="stat-number">10K+</span>
-                        <div class="stat-label">Khách hàng tin tưởng</div>
+                        <div class="stat-label">Khách hàng</div>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-6 col-md-3">
                     <div class="stat-item">
                         <span class="stat-number">24/7</span>
-                        <div class="stat-label">Hỗ trợ khách hàng</div>
+                        <div class="stat-label">Hỗ trợ</div>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-6 col-md-3">
                     <div class="stat-item">
                         <span class="stat-number">100%</span>
-                        <div class="stat-label">Chất lượng đảm bảo</div>
+                        <div class="stat-label">Chất lượng</div>
                     </div>
                 </div>
             </div>
@@ -383,51 +522,50 @@
     </section>
 
     <!-- Features Section -->
-    <section class="py-5">
+    <section class="py-4">
         <div class="container">
-            <div class="text-center mb-5">
-                <h2 class="text-headline mb-3">Tại sao chọn chúng tôi?</h2>
-                <p class="text-secondary lead">Những lý do khiến khách hàng tin tưởng và lựa chọn</p>
+            <div class="text-center mb-4">
+                <h3 class="mb-2">Tại sao chọn chúng tôi?</h3>
             </div>
             
-            <div class="row g-4">
-                <div class="col-lg-3 col-md-6">
-                    <div class="feature-card text-center p-4 h-100">
-                        <div class="feature-icon primary">
+            <div class="row g-3">
+                <div class="col-md-6 col-lg-3">
+                    <div class="feature-card text-center p-3">
+                        <div class="feature-icon primary mb-2">
                             <i class="fas fa-shield-alt"></i>
                         </div>
-                        <h5 class="text-headline mb-3">An toàn tuyệt đối</h5>
-                        <p class="text-secondary">Tất cả sản phẩm đều được kiểm định chất lượng và đảm bảo an toàn cho sức khỏe.</p>
+                        <h6 class="mb-2">An toàn</h6>
+                        <small class="text-secondary">Sản phẩm được kiểm định chất lượng</small>
                     </div>
                 </div>
                 
-                <div class="col-lg-3 col-md-6">
-                    <div class="feature-card text-center p-4 h-100">
-                        <div class="feature-icon secondary">
+                <div class="col-md-6 col-lg-3">
+                    <div class="feature-card text-center p-3">
+                        <div class="feature-icon secondary mb-2">
                             <i class="fas fa-truck"></i>
                         </div>
-                        <h5 class="text-headline mb-3">Giao hàng nhanh</h5>
-                        <p class="text-secondary">Giao hàng trong vòng 24h với đội ngũ vận chuyển chuyên nghiệp và tận tâm.</p>
+                        <h6 class="mb-2">Giao nhanh</h6>
+                        <small class="text-secondary">Giao hàng trong vòng 24h</small>
                     </div>
                 </div>
                 
-                <div class="col-lg-3 col-md-6">
-                    <div class="feature-card text-center p-4 h-100">
-                        <div class="feature-icon tertiary">
+                <div class="col-md-6 col-lg-3">
+                    <div class="feature-card text-center p-3">
+                        <div class="feature-icon tertiary mb-2">
                             <i class="fas fa-star"></i>
                         </div>
-                        <h5 class="text-headline mb-3">Chất lượng 5 sao</h5>
-                        <p class="text-secondary">Sản phẩm được lựa chọn kỹ càng từ các thương hiệu uy tín hàng đầu.</p>
+                        <h6 class="mb-2">Chất lượng</h6>
+                        <small class="text-secondary">Thương hiệu uy tín hàng đầu</small>
                     </div>
                 </div>
                 
-                <div class="col-lg-3 col-md-6">
-                    <div class="feature-card text-center p-4 h-100">
-                        <div class="feature-icon water">
+                <div class="col-md-6 col-lg-3">
+                    <div class="feature-card text-center p-3">
+                        <div class="feature-icon water mb-2">
                             <i class="fas fa-headset"></i>
                         </div>
-                        <h5 class="text-headline mb-3">Hỗ trợ 24/7</h5>
-                        <p class="text-secondary">Đội ngũ chăm sóc khách hàng luôn sẵn sàng hỗ trợ bạn mọi lúc, mọi nơi.</p>
+                        <h6 class="mb-2">Hỗ trợ 24/7</h6>
+                        <small class="text-secondary">Chăm sóc khách hàng tận tâm</small>
                     </div>
                 </div>
             </div>
@@ -435,17 +573,12 @@
     </section>
 
     <!-- CTA Section -->
-    <section class="bg-gradient-primary py-5">
+    <section class="bg-primary text-white py-4">
         <div class="container text-center">
-            <div class="row justify-content-center">
-                <div class="col-lg-8">
-                    <h2 class="text-headline mb-3">Sẵn sàng bắt đầu?</h2>
-                    <p class="text-secondary mb-4">Khám phá ngay bộ sưu tập nước uống đa dạng và chất lượng cao của chúng tôi.</p>
-                    <a href="{{ route('products.index') }}" class="btn btn-secondary btn-lg">
-                        <i class="fas fa-shopping-bag me-2"></i>Xem sản phẩm
-                    </a>
-                </div>
-            </div>
+            <h4 class="mb-3">Sẵn sàng bắt đầu?</h4>
+            <a href="{{ route('products.index') }}" class="btn btn-light">
+                <i class="fas fa-shopping-bag me-2"></i>Xem sản phẩm
+            </a>
         </div>
     </section>
 

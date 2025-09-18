@@ -17,7 +17,12 @@ class ProductController extends Controller
     public function index()
     {
         $products = Product::with('category')->paginate(12);
-        $categories = Category::all();
+        // Chỉ lấy categories có sản phẩm, sắp xếp theo tên và đảm bảo không trùng lặp
+        $categories = Category::has('products')
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->distinct()
+            ->get();
         return view('products.index', compact('products', 'categories'));
     }
 
@@ -78,8 +83,47 @@ class ProductController extends Controller
      */
     public function show($id)
     {
-        $product = Product::with('category')->findOrFail($id);
-        return view('products.show', compact('product'));
+        $product = Product::with(['category', 'reviews.user'])->findOrFail($id);
+        
+        // Kiểm tra xem user đã đăng nhập và đã mua sản phẩm này chưa
+        $canReview = false;
+        $userReview = null;
+        
+        if (auth()->check()) {
+            $user = auth()->user();
+            
+            // Kiểm tra xem user đã mua sản phẩm này chưa
+            $hasPurchased = \App\Models\Order::where('user_id', $user->id)
+                ->where('status', 'đã giao hàng')
+                ->whereHas('items', function ($query) use ($id) {
+                    $query->where('product_id', $id);
+                })
+                ->exists();
+            
+            if ($hasPurchased) {
+                // Kiểm tra xem user đã review sản phẩm này chưa
+                $userReview = \App\Models\ProductReview::where('user_id', $user->id)
+                    ->where('product_id', $id)
+                    ->first();
+                
+                // Chỉ cho phép review nếu chưa review hoặc muốn chỉnh sửa review
+                $canReview = true;
+            }
+        }
+        
+        // Lấy thống kê đánh giá
+        $averageRating = $product->averageRating();
+        $totalReviews = $product->totalReviews();
+        $ratingDistribution = $product->ratingDistribution();
+        
+        return view('products.show', compact(
+            'product', 
+            'canReview', 
+            'userReview', 
+            'averageRating', 
+            'totalReviews', 
+            'ratingDistribution'
+        ));
     }
 
     /**
