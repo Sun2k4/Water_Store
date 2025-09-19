@@ -90,22 +90,21 @@ class PaymentController extends Controller
             // Commit transaction để lưu đơn hàng trước khi chuyển hướng
             DB::commit();
 
-            // Tích hợp MoMo
+            // Tích hợp MoMo với xử lý lỗi tốt hơn
             $endpoint = "https://test-payment.momo.vn/v2/gateway/api/create";
-            $partnerCode = env('MOMO_PARTNER_CODE', 'MOMO'); // Lấy từ file .env
-            $accessKey = env('MOMO_ACCESS_KEY', 'F8BBA842ECF85'); // Lấy từ file .env
-            $secretKey = env('MOMO_SECRET_KEY', 'K951B6PE1waDMi640xX08PD3vg6EkVlz'); // Lấy từ file .env
+            $partnerCode = env('MOMO_PARTNER_CODE', 'MOMOBKUN20180529');
+            $accessKey = env('MOMO_ACCESS_KEY', 'klm05TvNBzhg7h7j');
+            $secretKey = env('MOMO_SECRET_KEY', 'at67qH6mk8w5Y1nAyMoYKMWACiEi2bsa');
             
             // Tạo orderId duy nhất để tránh trùng lặp khi người dùng thử lại
             $orderId = $order->id . '_' . time();
             $orderInfo = "Thanh toán đơn hàng #" . $order->id;
-            $amount = $order->total_price;
+            $amount = $order->final_price; // Sử dụng final_price thay vì total_price
             $redirectUrl = route('payment.momo.callback');
             $ipnUrl = route('payment.momo.callback');
             $extraData = "";
 
             $requestId = time() . "";
-            // THAY ĐỔI: Chuyển sang `payWithATM` để thanh toán bằng thẻ
             $requestType = "payWithATM";
             
             $rawHash = "accessKey=$accessKey&amount=$amount&extraData=$extraData&ipnUrl=$ipnUrl&orderId=$orderId&orderInfo=$orderInfo&partnerCode=$partnerCode&redirectUrl=$redirectUrl&requestId=$requestId&requestType=$requestType";
@@ -115,7 +114,7 @@ class PaymentController extends Controller
                 'partnerCode' => $partnerCode,
                 'accessKey' => $accessKey,
                 'requestId' => $requestId,
-                'amount' => (string)$amount, // MoMo yêu cầu amount là string
+                'amount' => (string)$amount,
                 'orderId' => $orderId,
                 'orderInfo' => $orderInfo,
                 'redirectUrl' => $redirectUrl,
@@ -126,13 +125,41 @@ class PaymentController extends Controller
                 'lang' => 'vi',
             ];
 
+            // Cải thiện cURL với timeout và error handling
             $ch = curl_init($endpoint);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
             curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            
+            // Log request để debug
+            \Log::info('MoMo Request', [
+                'endpoint' => $endpoint,
+                'data' => $data,
+                'signature_raw' => $rawHash
+            ]);
+            
             $result = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlError = curl_error($ch);
             curl_close($ch);
+
+            // Log response để debug
+            \Log::info('MoMo Response', [
+                'http_code' => $httpCode,
+                'response' => $result,
+                'curl_error' => $curlError
+            ]);
+
+            if ($curlError) {
+                throw new \Exception('Lỗi kết nối MoMo: ' . $curlError);
+            }
+
+            if ($httpCode !== 200) {
+                throw new \Exception('MoMo API trả về lỗi HTTP: ' . $httpCode);
+            }
 
             $jsonResult = json_decode($result, true);
 
@@ -140,9 +167,14 @@ class PaymentController extends Controller
                 // Redirect sang trang thanh toán MoMo
                 return redirect($jsonResult['payUrl']);
             } else {
-                // Nếu có lỗi, quay lại và báo lỗi
-                DB::rollBack(); // Rollback nếu không thể tạo link thanh toán
-                return back()->with('error', 'Không thể kết nối MoMo: ' . ($jsonResult['message'] ?? 'Lỗi không xác định'));
+                // Log chi tiết lỗi để debug
+                \Log::error('MoMo API Error', [
+                    'response' => $jsonResult,
+                    'data_sent' => $data,
+                    'order_id' => $order->id
+                ]);
+                
+                throw new \Exception('Không thể tạo link thanh toán MoMo: ' . ($jsonResult['message'] ?? 'Lỗi không xác định'));
             }
 
         } catch (\Exception $e) {
